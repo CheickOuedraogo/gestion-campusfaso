@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self'" />
+  <title>T.Notes</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="app">
+
+  <!-- Header -->
+  <div id="header">
+    <h1>Transfert Sécurisé</h1>
+    <p>Multi-fichiers · Backups automatiques · Rapports d'audit</p>
+  </div>
+  <div class="accent-bar"></div>
+
+  <!-- Scroll area -->
+  <div id="scroll-area">
+
+    <!-- Step 1: PV -->
+    <div class="card" id="card-pv">
+      <div class="card-title">
+        <span class="step-badge">01</span> Fichier PV Général
+      </div>
+
+      <div class="file-meta" id="pv-meta">Aucun fichier chargé.</div>
+
+      <div class="drop-zone" id="pv-drop">
+        Glissez le fichier PV ici, ou cliquez pour parcourir
+      </div>
+
+      <div id="pv-col-section" class="hidden">
+        <div class="form-group" style="margin-top:12px">
+          <label>Colonne Matricule (dans le PV)</label>
+          <select id="pv-matricule-select"></select>
+        </div>
+        <div class="validate-row">
+          <button class="btn btn-primary" id="pv-validate-btn">Valider le PV</button>
+        </div>
+      </div>
+
+      <div class="info-label hidden" id="pv-info"></div>
+    </div>
+
+    <!-- Step 2: Examens -->
+    <div class="card hidden" id="card-examens">
+      <div class="card-title">
+        <span class="step-badge">02</span> Fichiers Examen (Réception)
+      </div>
+
+      <div class="form-group">
+        <label>Colonne NOTE dans le PV (source pour tous les fichiers)</label>
+        <select id="pv-note-select"></select>
+      </div>
+
+      <div class="drop-zone" id="examens-drop" style="margin-top:10px">
+        Glissez les fichiers examen ici, ou cliquez (sélection multiple)
+      </div>
+
+      <div id="examen-files-list" style="margin-top:8px"></div>
+
+      <div id="transfer-area" class="hidden">
+        <div id="transfer-result"></div>
+        <button class="btn btn-success" id="transfer-btn">Transférer</button>
+      </div>
+    </div>
+
+    <!-- Step 3: History -->
+    <div class="card hidden" id="card-history">
+      <div class="card-title">
+        <span class="step-badge">03</span> Historique
+      </div>
+      <div id="history-list"></div>
+    </div>
+
+  </div><!-- /scroll-area -->
+
+  <!-- Console -->
+  <div id="console-panel">
+    <div id="console-resize"></div>
+    <div id="console-header">
+      <span>CONSOLE</span>
+      <button id="console-clear">effacer</button>
+    </div>
+    <div id="console-log"></div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- Confirmation modal -->
+<div id="modal-overlay" class="hidden">
+  <div id="modal">
+    <h2>Confirmation de transfert</h2>
+    <div id="modal-body"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="modal-cancel">Annuler</button>
+      <button class="btn btn-success" id="modal-confirm">Confirmer le transfert</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

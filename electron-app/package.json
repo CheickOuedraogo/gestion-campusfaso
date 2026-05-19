@@ -1,0 +1,43 @@
+{
+  "name": "transfert-notes",
+  "version": "1.0.0",
+  "description": "Transfert sécurisé de notes PV → Examens",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:deb": "electron-builder --linux deb",
+    "build:win": "electron-builder --win nsis",
+    "build:all": "electron-builder --linux deb --win nsis"
+  },
+  "build": {
+    "appId": "bf.campusfaso.transfert-notes",
+    "productName": "Transfert Notes",
+    "copyright": "CampusFaso",
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*"
+    ],
+    "linux": {
+      "target": ["deb"],
+      "category": "Education",
+      "icon": "src/icon.png"
+    },
+    "win": {
+      "target": ["nsis"],
+      "icon": "src/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerLanguages": ["fr_FR", "en_US"]
+    }
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "electron": "^35.0.0",
+    "electron-builder": "^25.0.0"
+  }
+}
