@@ -2,6 +2,11 @@
   "name": "transfert-notes",
   "version": "1.0.0",
   "description": "Transfert sécurisé de notes PV → Examens",
+  "homepage": "https://github.com/CheickOuedraogo/gestion-campusfaso",
+  "author": {
+    "name": "Ouedraogo Bonaventure",
+    "email": "hcheick75@gmail.com"
+  },
   "main": "main.js",
   "scripts": {
     "start": "electron .",
