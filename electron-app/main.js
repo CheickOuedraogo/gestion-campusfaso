@@ -210,9 +210,13 @@ ipcMain.handle('transfer:commit', async (_, results) => {
   for (const res of results) {
     const { filepath, data, auditLines } = res;
     const ext = path.extname(filepath).toLowerCase();
-    const base = filepath.slice(0, filepath.length - ext.length);
+    const dir = path.dirname(filepath);
+    const filename = path.basename(filepath, ext);
+    const logDir = path.join(dir, 'log');
 
-    const backupPath = `${base}_backup_${tag}${ext}`;
+    if (!fs.existsSync(logDir)) fs.mkdirSync(logDir);
+
+    const backupPath = path.join(logDir, `${filename}_backup_${tag}${ext}`);
     fs.copyFileSync(filepath, backupPath);
     log.push({ level: 'ok', msg: `[${res.fname}] Backup → ${path.basename(backupPath)}` });
 
@@ -222,7 +226,7 @@ ipcMain.handle('transfer:commit', async (_, results) => {
     if (res.overwritten) log.push({ level: 'warn', msg: `[${res.fname}] ${res.overwritten} note(s) écrasée(s)` });
     if (res.aberrants)   log.push({ level: 'warn', msg: `[${res.fname}] ${res.aberrants} valeur(s) aberrante(s)` });
 
-    const auditPath = `${base}_audit_${tag}.txt`;
+    const auditPath = path.join(logDir, `${filename}_audit_${tag}.txt`);
     fs.writeFileSync(auditPath, auditLines.join('\n'), 'utf-8');
     log.push({ level: 'info', msg: `[${res.fname}] Audit → ${path.basename(auditPath)}` });
 
