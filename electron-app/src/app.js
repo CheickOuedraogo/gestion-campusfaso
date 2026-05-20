@@ -139,6 +139,32 @@ function validatePV() {
   show('card-examens');
 }
 
+// Mémorisation des colonnes
+const columnMemory = {
+  get: (filename) => JSON.parse(localStorage.getItem(`cols_${filename}`)),
+  set: (filename, mat, note) => localStorage.setItem(`cols_${filename}`, JSON.stringify({ mat, note }))
+};
+
+function fillSelect(selectEl, columns, prefer, saved = null) {
+  selectEl.innerHTML = '';
+  for (const col of columns) {
+    const opt = document.createElement('option');
+    opt.value = opt.textContent = col;
+    selectEl.appendChild(opt);
+  }
+  if (saved) {
+    selectEl.value = saved;
+  } else if (prefer) {
+    const lower = prefer.map(k => k.toLowerCase());
+    for (const col of columns) {
+      if (lower.some(k => col.toLowerCase().includes(k))) {
+        selectEl.value = col;
+        return;
+      }
+    }
+  }
+}
+
 // ─── Section Examens ──────────────────────────────────────────────────────────
 async function addExamenFiles(filepaths) {
   for (const fp of filepaths) {
@@ -152,15 +178,14 @@ async function addSingleExamen(filepath) {
   try {
     const data = await window.api.loadFile(filepath);
 
-    // Vérifier doublon
     if (state.examens.find(e => e.filepath === filepath)) {
       log('warn', `Déjà chargé : ${fname}`);
       return;
     }
 
-    const entry = { filepath, fname, data, matCol: null, noteCol: null, rowEl: null };
+    const saved = columnMemory.get(fname);
+    const entry = { filepath, fname, data, rowEl: null };
 
-    // Construction de la ligne UI
     const row = document.createElement('div');
     row.className = 'examen-file-row';
 
@@ -178,7 +203,6 @@ async function addSingleExamen(filepath) {
     removeBtn.addEventListener('click', () => {
       row.remove();
       state.examens = state.examens.filter(e => e !== entry);
-      log('info', `Fichier retiré : ${fname}`);
       refreshTransferBtn();
     });
 
@@ -186,7 +210,6 @@ async function addSingleExamen(filepath) {
     header.appendChild(removeBtn);
     row.appendChild(header);
 
-    // Sélecteurs colonnes
     const formRow = document.createElement('div');
     formRow.className = 'form-row';
 
@@ -195,7 +218,7 @@ async function addSingleExamen(filepath) {
     const matLabel = document.createElement('label');
     matLabel.textContent = 'Colonne Matricule';
     const matSelect = document.createElement('select');
-    fillSelect(matSelect, data.columns, ['matricule', 'matric', 'num', 'immat', 'etud']);
+    fillSelect(matSelect, data.columns, ['matricule', 'matric', 'num', 'immat', 'etud'], saved?.mat);
     matGroup.appendChild(matLabel);
     matGroup.appendChild(matSelect);
 
@@ -204,7 +227,7 @@ async function addSingleExamen(filepath) {
     const noteLabel = document.createElement('label');
     noteLabel.textContent = 'Colonne Note (destination)';
     const noteSelect = document.createElement('select');
-    fillSelect(noteSelect, data.columns, ['note', 'score', 'résultat', 'resultat', 'moy']);
+    fillSelect(noteSelect, data.columns, ['note', 'score', 'résultat', 'resultat', 'moy'], saved?.note);
     noteGroup.appendChild(noteLabel);
     noteGroup.appendChild(noteSelect);
 
@@ -219,7 +242,6 @@ async function addSingleExamen(filepath) {
     entry.getNoteCol = () => noteSelect.value;
 
     state.examens.push(entry);
-    log('ok', `Examen chargé : ${fname} — ${data.rows.length} lignes | ${data.columns.join(', ')}`);
     refreshTransferBtn();
 
   } catch (err) {
@@ -250,6 +272,11 @@ async function executeTransfer() {
       log('err', `Colonnes manquantes pour : ${ex.fname}`);
       return;
     }
+  }
+
+  // Enregistrer les choix
+  for (const ex of state.examens) {
+    columnMemory.set(ex.fname, ex.getMatCol(), ex.getNoteCol());
   }
 
   log('info', `━━━ DÉBUT TRANSFERT — ${state.examens.length} fichier(s) | Col. PV : « ${pvNoteCol} » ━━━`);
