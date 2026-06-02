@@ -123,16 +123,16 @@ class CustomSelect {
     const rect = this.trigger.getBoundingClientRect();
     const spaceBelow = window.innerHeight - rect.bottom;
     const spaceAbove = rect.top;
-    const dropdownHeight = Math.min(250, spaceBelow - 10);
+    const minH = 80;
 
-    if (dropdownHeight >= 100 || spaceBelow >= spaceAbove) {
+    if (spaceBelow >= spaceAbove) {
       this.dropdown.style.top = (rect.bottom + 4) + 'px';
       this.dropdown.style.bottom = 'auto';
-      this.dropdown.style.maxHeight = Math.min(250, spaceBelow - 10) + 'px';
+      this.dropdown.style.maxHeight = Math.max(minH, Math.min(250, spaceBelow - 10)) + 'px';
     } else {
       this.dropdown.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
       this.dropdown.style.top = 'auto';
-      this.dropdown.style.maxHeight = Math.min(250, spaceAbove - 10) + 'px';
+      this.dropdown.style.maxHeight = Math.max(minH, Math.min(250, spaceAbove - 10)) + 'px';
     }
     this.dropdown.style.left = rect.left + 'px';
     this.dropdown.style.width = rect.width + 'px';
