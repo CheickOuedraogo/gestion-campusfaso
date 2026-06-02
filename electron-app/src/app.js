@@ -6,6 +6,8 @@ const state = {
   examens: [],    // [{ filepath, fname, data, matCol, noteCol, rowEl }]
   history: [],
   pendingResults: null,
+  pvMatSelect: null,
+  pvNoteSelect: null,
 };
 
 // ─── Helpers log ──────────────────────────────────────────────────────────────
@@ -34,24 +36,6 @@ function escHtml(str) {
 function show(id)  { document.getElementById(id)?.classList.remove('hidden'); }
 function hide(id)  { document.getElementById(id)?.classList.add('hidden'); }
 function get(id)   { return document.getElementById(id); }
-
-function fillSelect(selectEl, columns, prefer) {
-  selectEl.innerHTML = '';
-  for (const col of columns) {
-    const opt = document.createElement('option');
-    opt.value = opt.textContent = col;
-    selectEl.appendChild(opt);
-  }
-  if (prefer) {
-    const lower = prefer.map(k => k.toLowerCase());
-    for (const col of columns) {
-      if (lower.some(k => col.toLowerCase().includes(k))) {
-        selectEl.value = col;
-        return;
-      }
-    }
-  }
-}
 
 // ─── Drag & Drop helpers ──────────────────────────────────────────────────────
 function setupDrop(el, onFiles) {
@@ -104,7 +88,7 @@ async function loadPV(filepath) {
     drop.classList.add('loaded');
     drop.textContent = `Chargé : ${fname}`;
 
-    fillSelect(get('pv-matricule-select'), data.columns,
+    fillSelect(state.pvMatSelect, data.columns,
       ['matricule', 'matric', 'num', 'immat', 'etud']);
     show('pv-col-section');
 
@@ -122,7 +106,7 @@ async function loadPV(filepath) {
 }
 
 function validatePV() {
-  const col = get('pv-matricule-select').value;
+  const col = state.pvMatSelect.value;
   if (!col) return;
   state.pv.matriculeCol = col;
 
@@ -134,7 +118,7 @@ function validatePV() {
   log('ok', `PV validé | Col. matricule : « ${col} » | ${unique} entrées uniques`);
 
   // Pré-remplir note select avec les colonnes du PV
-  fillSelect(get('pv-note-select'), state.pv.data.columns,
+  fillSelect(state.pvNoteSelect, state.pv.data.columns,
     ['note', 'score', 'résultat', 'resultat', 'moy']);
   show('card-examens');
 }
@@ -146,12 +130,7 @@ const columnMemory = {
 };
 
 function fillSelect(selectEl, columns, prefer, saved = null) {
-  selectEl.innerHTML = '';
-  for (const col of columns) {
-    const opt = document.createElement('option');
-    opt.value = opt.textContent = col;
-    selectEl.appendChild(opt);
-  }
+  selectEl.setOptions(columns);
   if (saved) {
     selectEl.value = saved;
   } else if (prefer) {
@@ -201,6 +180,8 @@ async function addSingleExamen(filepath) {
     removeBtn.className = 'btn btn-danger';
     removeBtn.textContent = '✕';
     removeBtn.addEventListener('click', () => {
+      matSelect.destroy();
+      noteSelect.destroy();
       row.remove();
       state.examens = state.examens.filter(e => e !== entry);
       refreshTransferBtn();
@@ -217,19 +198,17 @@ async function addSingleExamen(filepath) {
     matGroup.className = 'form-group';
     const matLabel = document.createElement('label');
     matLabel.textContent = 'Colonne Matricule';
-    const matSelect = document.createElement('select');
-    fillSelect(matSelect, data.columns, ['matricule', 'matric', 'num', 'immat', 'etud'], saved?.mat);
     matGroup.appendChild(matLabel);
-    matGroup.appendChild(matSelect);
+    const matSelect = new CustomSelect(matGroup);
+    fillSelect(matSelect, data.columns, ['matricule', 'matric', 'num', 'immat', 'etud'], saved?.mat);
 
     const noteGroup = document.createElement('div');
     noteGroup.className = 'form-group';
     const noteLabel = document.createElement('label');
     noteLabel.textContent = 'Colonne Note (destination)';
-    const noteSelect = document.createElement('select');
-    fillSelect(noteSelect, data.columns, ['note', 'score', 'résultat', 'resultat', 'moy'], saved?.note);
     noteGroup.appendChild(noteLabel);
-    noteGroup.appendChild(noteSelect);
+    const noteSelect = new CustomSelect(noteGroup);
+    fillSelect(noteSelect, data.columns, ['note', 'score', 'résultat', 'resultat', 'moy'], saved?.note);
 
     formRow.appendChild(matGroup);
     formRow.appendChild(noteGroup);
@@ -263,7 +242,7 @@ function refreshTransferBtn() {
 
 // ─── Transfert ────────────────────────────────────────────────────────────────
 async function executeTransfer() {
-  const pvNoteCol = get('pv-note-select').value;
+  const pvNoteCol = state.pvNoteSelect.value;
   if (!pvNoteCol) { log('err', 'Sélectionnez la colonne NOTE du PV.'); return; }
   if (!state.examens.length) { log('err', 'Ajoutez au moins un fichier examen.'); return; }
 
@@ -378,6 +357,9 @@ function buildHistory() {
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 function init() {
+  state.pvMatSelect = new CustomSelect(get('pv-matricule-select'));
+  state.pvNoteSelect = new CustomSelect(get('pv-note-select'));
+
   log('info', 'Application démarrée en mode sécurisé.');
   log('info', 'Séparateur décimal : « . » | Détection CSV : automatique');
 
